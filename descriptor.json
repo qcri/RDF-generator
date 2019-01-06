@@ -1,0 +1,70 @@
+{
+	"prefixes":{
+		"sioc": "http://sioc.com/#",
+		"sioct": "http://rdfs.org/sioc/types#",
+		"siocq": "http://rdfs.org/sioc/quotes#",
+		"dcterms": "http://purl.org/dc/terms/",
+		"xsd": "http://www.example.org/",
+		"foaf": "http://xmlns.com/foaf/0.1/",
+		"seas": "https://w3id.org/seas/",
+		"prov": "http://www.w3.org/ns/prov#",
+		"sto": "https://w3id.org/i40/sto#",
+		"twitter": "http://twitter.com/",
+		"iol": "http://ontologydesignpatterns.org/ont/dul/IOLite.owl#",
+		"d2rq": "http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RA/0.1#"
+	},
+	"graph": "http://twitter.com",
+	"entities": {
+		"tweep": {
+			"name": "tweep",
+			"uri_template": "http://twitter.com/{/user/screen_name}",
+			"type": "sioc:UserAccount",
+			"path": "/user/",
+			"properties": {
+				"/user/id": [{"predicate": "sioc:id", "score": 1.0, "data_type": "xsd:ID", "object_type": "literal"}],
+				"/user/screen_name": [{"predicate": "sioc:name", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/user/url": [{"predicate": "sioc:link", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/user/follows": [{"predicate": "sioc:follows", "score": 1.0, "data_type": "sioc:UserAccount", "object_type": "entity", "substitutions": {"/user/screen_name": ""}}],
+				"/user/followedBy": [{"predicate": "sioc:has_subscriber", "score": 1.0, "data_type": "sioc:UserAccount", "object_type": "entity", "substitutions": {"/user/screen_name": ""}}],
+				"/user/profile_image_url": [{"predicate": "sioc:avatar", "score": 1.0, "data_type": "xsd:URI", "object_type": "literal"}],
+				"/user/verified": [{"predicate": "sioc:has_group", "score": 1.0, "data_type": "xsd:Boolean", "object_type": "literal"}],
+				"/user/description": [{"predicate": "sioc:description", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/": [{"predicate": "sioc:creator_of", "score": 1.0, "data_type": "sioc:microblogPost", "object_type": "entity", "substitutions": {"/user/screen_name": "", "/id": ""}}],
+				"/user/location": [{"predicate": "sioc:locatedIn", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/user/lang": [{"predicate": "dcterms:language", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/user/created_at": [{"predicate": "dcterms:created", "score": 1.0, "data_type": "xsd:dateTime", "object_type": "literal"}]
+			}
+		},
+		"tweet": {
+			"name": "tweet",
+			"uri_template": "http://twitter.com/{/user/screen_name}/status/{/id}",
+			"type": "sioc:microblogPost",
+			"path": "/",
+			"properties": {
+				"/id": [{"predicate": "sioc:id", "score": 1.0, "data_type": "xsd:ID", "object_type": "literal"}],
+				"/full_text": [{"predicate": "sioc:content", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/user/": [{"predicate": "sioc:has_creator", "score": 1.0, "data_type": "sioc:UserAccount", "object_type": "entity", "substitutions": {"/user/screen_name": ""}}],
+				"/entities/hashtags/[*]/text": [{"predicate": "sto:hasTag", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/entities/urls/[*]": [{"predicate": "sto:hasTag", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/entities/user_mentions/[*]": [{"predicate": "sioc:mentions", "score": 1.0, "data_type": "sioc:UserAccount", "object_type": "entity", "substitutions": {"/user/screen_name": "/entities/user_mentions/[*]/screen_name"}}],
+				"/lang": [{"predicate": "dcterms:language", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/place/name": [{"predicate": "sioc:locatedIn", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/source": [{"predicate": "seas:Device", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
+				"/": [{"predicate": "sioc:reply_of", "score": 1.0, "data_type": "sioc:microblogPost", "object_type": "entity", "substitutions": {"/user/screen_name": "/in_reply_to_screen_name", "/id": "/in_reply_to_status_id"}}],
+				"/quoted_status": [{"predicate": "prov:wasQuotedFrom", "score": 1.0, "data_type": "sioc:microblogPost", "object_type": "entity", "substitutions": {"/user/screen_name": "/quoted_status/user/screen_name", "/id": "/quoted_status/user/id"}}],
+				"/retweeted_status": [{"predicate": "dcterms:references", "score": 1.0, "data_type": "sioc:microblogPost", "object_type": "entity", "substitutions": {"/user/screen_name": "/retweeted_status/user/screen_name", "/id": "/retweeted_status/id"}}],
+				"/created_at": [{"predicate": "dcterms:created", "score": 1.0, "data_type": "xsd:dateTime", "object_type": "literal"}]
+			}
+		},
+		"mmresource": {
+			"name": "mmresource",
+			"uri_template": "{/entities/media/[*]/media_url_https}",
+			"type": "iol:MultimediaObject",
+			"path": "/entities/media/[*]",
+			"properties": {
+				"/entities/media/[*]/id": [{"predicate": "sioc:id", "score": 1.0, "data_type": "xsd:ID", "object_type": "literal"}],
+				"/entities/media/[*]/media_url_https": [{"predicate": "sioc:link", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}]
+			}
+		}
+	}
+}

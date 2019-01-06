@@ -1,12 +1,13 @@
 """
 connects the transformation pipeline stages together
 """
-from DataImporters.json_data_importer import JsonDataImporter, ImportFormats
+from DataImporters.json_data_importer import JsonDataImporter
 from DataTransformers.data_transformer import DataTransformer
-from DataExporters.data_exporter import DataExporter, RDFExportFormats
+from DataExporters.data_exporter import DataExporter
+from utils.file_format_manager import FileFormatManager
 from descriptor import Descriptor
 from triples import EndMessage
-import sys, os
+import sys, os, math
 
 
 class TransformationManager:
@@ -15,7 +16,7 @@ class TransformationManager:
     """
 
     def __init__(self, graph_identifier, input_file, output_file, descriptor_file, export_format=None,
-                 parallelism=None):
+                 parallelism=None, inline_exporters=False, buffer_size=1000):
         """
         initializing the transformation manager with all the information needed to perform the whole transformation
         process
@@ -25,12 +26,17 @@ class TransformationManager:
         :param descriptor_file: the descriptor json file
         :param export_format: the format used to export the generated graph. Default turtle
         :param parallelism: the number of transformation worker threads (Degree of parallelism)
+        :param inline_exporters: whether to create exporters in a different process
+        :param buffer_size: records buffer size before processing or passing over
         """
         self.graph_identifier = graph_identifier
         self.input_file = input_file
         self.output_file = output_file
         self.descriptor = Descriptor(descriptor_file)
-        self.export_format = export_format if export_format is not None else self.__guess_export_format()
+        self.export_format = export_format if export_format is not None \
+            else FileFormatManager.guess_export_format(self.output_file)
+        self.inline_exporters = inline_exporters
+        self.buffer_size = buffer_size
         self.importer = None
         self.transformers = []
         self.exporters = []
@@ -41,15 +47,21 @@ class TransformationManager:
     def build_transformation_pipeline(self):
         self.importer = self.__create_importer()
 
-        map(self.transformers.append(DataTransformer(self.descriptor)), range(self.parallelism))
-        map(self.exporters.append(DataExporter(graph_iden=self.graph_identifier, filepath=self.output_file,
-                                               export_format=self.export_format)),
-            range(self.parallelism))
-        map(lambda i, transformer: transformer.connect_to_exporter(self.exporters[i]), enumerate(self.transformers))
+        self.transformers = [DataTransformer(self) for _ in range(self.parallelism)]
+
+        if self.inline_exporters:
+            exporter = DataExporter(self)
+            self.exporters.append(exporter)
+            map(lambda transformer: transformer.connect_to_exporter(exporter), self.transformers)
+        else:
+            self.exporters = [DataExporter(self, i) for i in range(self.parallelism)]
+            for i, transformer in enumerate(self.transformers):
+                transformer.connect_to_exporter(self.exporters[i])
 
     def bootstrap_pipeline(self):
-        map(lambda i: self.transformers[i].start(), range(self.parallelism))
-        map(lambda i: self.exporters[i].start(), range(self.parallelism))
+        for i in range(self.parallelism):
+            self.transformers[i].start()
+            self.exporters[i].start()
 
     def run(self):
         self.bootstrap_pipeline()
@@ -66,13 +78,15 @@ class TransformationManager:
             chunck_size = len(records_list) / len(self.transformers)
 
             for i in range(len(self.transformers)):
-                chunck_start = i * chunck_size
-                chunck_end = (i + 1) * chunck_size
+                chunck_start = int(i * chunck_size)
+                chunck_end = int(math.ceil((i + 1) * chunck_size))
                 chunck = records_list[chunck_start: chunck_end]
+                print('chunck {} starts at {} ends at {}'.format(i, chunck_start, chunck_end))
 
                 self.transformers[i].send_me_message(chunck)
 
-        map(lambda transformer: transformer.send_me_message(EndMessage('END')), self.transformers)
+        for transformer in self.transformers:
+            transformer.send_me_message(EndMessage('END'))
 
     def __process_record(self, turn, record):
         """
@@ -89,18 +103,3 @@ class TransformationManager:
         # TODO: create and return other importers types here
         if ip_file_type == 'json':
             return JsonDataImporter(self.input_file)
-
-    def __guess_export_format(self):
-        ex_format = TransformationManager.__guess_format(self.output_file)
-        return ex_format if ex_format is not None else RDFExportFormats.Turtle
-
-    def __guess_input_format(self):
-        ip_format = TransformationManager.__guess_format(self.input_file)
-        return ip_format if ip_format is not None else ImportFormats.Json
-
-    @staticmethod
-    def __guess_format(filename):
-        filename_components = filename.split('.')
-
-        if len(filename) > 1:
-            return filename_components[-1]
