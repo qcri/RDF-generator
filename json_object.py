@@ -1,5 +1,4 @@
-import json, os, sys
-from utils.MultilevelDictionary import MultilevelDictionary
+import json, os
 
 FILE_SIZE_STREAMING_THRESHOLD = 20 * 1024.0 * 1024.0
 
@@ -33,7 +32,7 @@ class JsonReader:
     def get_as_dict(filepath):
         with open(filepath, 'r') as f:
             try:
-                return MultilevelDictionary(json.load(f))
+                return json.load(f)
             except Exception as ex:
                 print(str(ex))
 
@@ -52,7 +51,7 @@ class JsonReader:
                 try:
                     line = line.strip()
                     if line.startswith('{') and line.endswith('}'):
-                        yield MultilevelDictionary(json.loads(line))
+                        yield json.loads(line)
                 except Exception as ex:
                     print(str(ex))
 

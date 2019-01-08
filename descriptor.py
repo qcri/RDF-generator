@@ -7,7 +7,7 @@ import rdflib
 class Descriptor:
 
     def __init__(self, desc_file):
-        self.desc_dict = JsonReader.get_as_dict(desc_file)
+        self.desc_dict = MultilevelDictionary(JsonReader.get_as_dict(desc_file))
         self.prefixes = {}
         self.namespaces = {}
         self.entities = {}      # Dictionary entity name => uri

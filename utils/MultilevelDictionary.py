@@ -83,7 +83,8 @@ class MultilevelDictionary:
         MultilevelDictionary.__get_keypath_results(kp_list, keypath_tree_results, tree_root)
 
         if len(keypath_tree_results) == 0:
-            print('key path {} has no matches in the MultilevelDictionary'.format(keypath))
+            # print('key path {} has no matches in the record'.format(keypath))
+            pass
 
         return [MultilevelDictionaryKeyPathMatch(node.keypath, node.keypath_value) for node in keypath_tree_results
                 if node.keypath_value is not None]
