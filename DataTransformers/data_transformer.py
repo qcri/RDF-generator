@@ -47,7 +47,7 @@ class DataTransformer:
                 if not self.manager.inline_exporters:
                     self.out_queue.put(msg)
                 else:
-                    self.exporter.save()
+                    self.exporter.finish_exportation()
                 break
             else:
                 message = vectorize_object(message)

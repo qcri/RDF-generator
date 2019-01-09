@@ -55,9 +55,7 @@ class DataExporter:
             message = pickle.loads(input_queue.get())
 
             if type(message) is EndMessage:
-                self.save()
-                self.__send_stats_obj(TimeStampMessage(self.exporter_no, 'exporter', 'end', time.time()))
-                self.__send_stats_obj(EndMessage('END'))
+                self.finish_exportation()
                 break
             else:
                 self.receive_triples(message)
@@ -73,6 +71,11 @@ class DataExporter:
         self.save()
         self.graph.close()
         self.graph = rdflib.Graph(identifier=self.graph_identifier)
+
+    def finish_exportation(self):
+        self.save()
+        self.__send_stats_obj(TimeStampMessage(self.exporter_no, 'exporter', 'end', time.time()))
+        self.__send_stats_obj(EndMessage('END'))
 
     def flush_buffer_to_graph(self):
         for triple in self.triples_buffer:

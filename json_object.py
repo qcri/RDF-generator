@@ -69,4 +69,4 @@ class JsonReader:
 
     @staticmethod
     def should_be_streamed(filepath):
-        return os.path.getsize(filepath) > FILE_SIZE_STREAMING_THRESHOLD
+        return os.path.getsize(filepath) > FILE_SIZE_STREAMING_THRESHOLD if os.path.exists(filepath) else False

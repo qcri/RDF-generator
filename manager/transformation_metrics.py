@@ -37,12 +37,13 @@ class TransformationMetrics:
     """
     tracks and stores various transformation parameters such as start and end times, number of transformed records ... etc
     """
-    def __init__(self, exporters_count):
+    def __init__(self, manager):
         self.stats_queue = mp.Queue()
         self.timestamps_msg_buffer = []
         self.info_msg_buffer = []
         self.exporters_msg_buffer = []
-        self.exporters_count = exporters_count
+        self.manager = manager
+        self.exporters_count = 1 if self.manager.inline_exporters else self.manager.parallelism
         self.finished_exporters = 0
 
     def run(self):
@@ -75,22 +76,39 @@ class TransformationMetrics:
         start_time = min(self.timestamps_msg_buffer, key=lambda ts_msg: time_sel_fn(ts_msg, 'start'))
         end_time = max(self.timestamps_msg_buffer, key=lambda ts_msg: time_sel_fn(ts_msg, 'end', -sys.maxsize-1))
 
-        return end_time - start_time
+        return end_time.time - start_time.time
 
     def get_transformation_stats(self, batch_no=None, thread_no=None):
+        stats_msg = [info for info in self.info_msg_buffer if TransformationMetrics.__filter_stats(info, batch_no,
+                                                                                                   thread_no)]
 
-        return TransformationMetrics.__get_stats(self.info_msg_buffer, batch_no, thread_no)
+        return sum([info.records_count for info in stats_msg]), sum([info.triples_count for info in stats_msg])
 
     def get_exportation_stats(self, batch_no=None, thread_no=None):
-        return TransformationMetrics.__get_stats(self.exporters_msg_buffer, batch_no, thread_no)
+        stats_msg = [info for info in self.exporters_msg_buffer if TransformationMetrics.__filter_stats(info, batch_no,
+                                                                                                        thread_no)]
 
-    @staticmethod
-    def __get_stats(buffer, batch_no=None, thread_no=None):
-        stats_msg = [info for info in buffer if TransformationMetrics.__filter_stats(info,
-                                                                                     batch_no,
-                                                                                     thread_no)]
+        return sum([info.triples_count for info in stats_msg])
 
-        return sum([info[0] for info in stats_msg]), sum([info[1] for info in stats_msg])
+    def print_metrics(self):
+        records_processed, triples_generated = self.get_transformation_stats()
+        print('''
+            Run metrics:
+            ============
+                total runtime: {} seconds
+                transformation time: {} seconds
+                exportation time: {} seconds
+                total records processed: {}
+                total triples generated: {}
+                number of transformer threads: {}
+                number of exporter threads: {}
+                '''.format(self.get_runtime(),
+                           self.get_runtime(thread_type='transformer'),
+                           self.get_runtime(thread_type='exporter'),
+                           records_processed,
+                           triples_generated,
+                           len(self.manager.transformers),
+                           self.exporters_count))
 
     @staticmethod
     def __filter_stats(info, batch_no, thread_no):

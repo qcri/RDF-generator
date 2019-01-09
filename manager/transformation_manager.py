@@ -43,7 +43,7 @@ class TransformationManager:
         self.transformers_queues = []
         self.exporters = []
         self.parallelism = parallelism if parallelism is not None else max(os.cpu_count() - 1, 1)
-        self.metrics_manager = TransformationMetrics(1 if inline_exporters else self.parallelism)
+        self.metrics_manager = TransformationMetrics(self)
 
         self.build_transformation_pipeline()
 
@@ -51,14 +51,14 @@ class TransformationManager:
         self.importer = self.__create_importer()
 
         if self.inline_exporters:
-            exporter = DataExporter(self)
+            exporter = DataExporter(self, self.metrics_manager.stats_queue)
             self.exporters = exporter
 
-        self.transformers = [DataTransformer(self) for _ in range(self.parallelism)]
+        self.transformers = [DataTransformer(self, self.metrics_manager.stats_queue) for _ in range(self.parallelism)]
         self.transformers_queues = [[] for _ in range(self.parallelism)]
 
         if not self.inline_exporters:
-            self.exporters = [DataExporter(self, i) for i in range(self.parallelism)]
+            self.exporters = [DataExporter(self, self.metrics_manager.stats_queue) for i in range(self.parallelism)]
             for i, transformer in enumerate(self.transformers):
                 transformer.connect_to_exporter(self.exporters[i])
 
@@ -83,11 +83,12 @@ class TransformationManager:
             records_list = self.importer.get_records()
             chunck_size = len(records_list) / len(self.transformers)
 
+            chunck_end = 0
             for i in range(len(self.transformers)):
-                chunck_start = int(i * chunck_size)
+                chunck_start = chunck_end
                 chunck_end = int(math.ceil((i + 1) * chunck_size))
                 chunck = records_list[chunck_start: chunck_end]
-                print('chunck {} starts at {} ends at {}'.format(i, chunck_start, chunck_end))
+                print('chunck {} starts at {} ends at {}'.format(i, chunck_start, chunck_end - 1))
 
                 self.transformers[i].send_me_message(chunck)
 
@@ -96,17 +97,8 @@ class TransformationManager:
             transformer.send_me_message(EndMessage('END'))
 
         self.metrics_manager.stats_queue.put(pickle.dumps(TimeStampMessage(0, None, 'end', time.time())))
-
-        records_processed, triples_generated = self.metrics_manager.get_transformation_stats()
-        print('''
-            total runtime: {}
-            total records processed: {}
-            total triples generated: {}
-            number of threads: {}
-        '''.format(self.metrics_manager.get_runtime(),
-                   records_processed,
-                   triples_generated,
-                   self.parallelism))
+        self.metrics_manager.run()
+        self.metrics_manager.print_metrics()
 
     def __buffer_record(self, turn, record):
         """
