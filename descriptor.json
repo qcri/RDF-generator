@@ -39,7 +39,7 @@
 			"properties": {
 				"/id_str": [{"predicate": "soic:id", "score": 1.0, "data_type": "xsd:ID", "object_type": "literal"}],
 				"/user/": [{"predicate": "sioc:has_creator", "score": 1.0, "data_type": "sioc:UserAccount", "object_type": "entity", "substitutions": {"/user/screen_name": ""}}],
-				"/created_at": [{"predicate": "dcterms:created", "score": 1.0, "type": "xsd:dateTime", "object_type": "literal"}],
+				"/created_at": [{"predicate": "dcterms:created", "score": 1.0, "data_type": "xsd:dateTime", "object_type": "literal"}],
 				"/text": [{"predicate": "soic:content", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
 				"/lang": [{"predicate": "dcterms:language", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
 				"/place/": [{"predicate": "to:locatedin", "score": 1.0, "data_type": "to:Location", "object_type": "entity", "substitutions": {"/place/id": ""}}],

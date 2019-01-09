@@ -5,8 +5,17 @@ import rdflib
 
 
 class Descriptor:
-
+    """
+    wraps the descriptor information with a set of convenience funtions to retrieve various descriptor parameters such as
+    the list of prefixes and entities with their uri templates, properties ... etc
+    """
     def __init__(self, desc_file):
+        """
+        initializes the descriptor object given the descriptor file path. The descriptor file is json which is loaded
+        as dictionary and wrapped in a MultilevelDictionary object in order to retrieve objects and values given
+        key paths in the loaded collection hierarchy
+        :param desc_file: the descriptor's file path
+        """
         self.desc_dict = MultilevelDictionary(JsonReader.get_as_dict(desc_file))
         self.prefixes = {}
         self.namespaces = {}
@@ -132,6 +141,14 @@ class Descriptor:
 
     @staticmethod
     def construct_uri_from_template(substitutions, uri_template, subs_count=1):
+        """
+        given a uri template and a dictionary mapping each template's variable name to it's substitution value, this
+        method replaces the template variables with the passed subs and constructs the entities URI
+        :param substitutions: dictionary mapping uri template variable to it's actual value {'/path/': ['value1', 'value2' ...etc]}
+        :param uri_template: the entities uri template in form 'http://example/com#{/path/var/1}/ex/{/path/var/2}'
+        :param subs_count: The number of uris that will be returned after the substitution
+        :return: list of URIs [URI]
+        """
         if subs_count == 0:
             return []
 
@@ -147,5 +164,11 @@ class Descriptor:
 
     @staticmethod
     def get_relative_path(path, relative_to_path):
+        """
+        returns the relative path components for path relative to relative_to_path
+        :param path: the absolute path to get its relative components
+        :param relative_to_path: the base reference path
+        :return: relative path components for path relative to relative_to_path as string
+        """
         r_path = path.replace(relative_to_path, '', 1)
         return r_path if r_path.startswith('/') else '/{}'.format(r_path)

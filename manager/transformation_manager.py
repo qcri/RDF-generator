@@ -48,6 +48,13 @@ class TransformationManager:
         self.build_transformation_pipeline()
 
     def build_transformation_pipeline(self):
+        """
+        Builds the transformers and exporters objects and connects them together considering if the inline_exporters flag
+        is set or not. If set, all transformers will have a copy of the exporter and no separate exporter process will
+        be spawned. If not set, the exporters will be spawned in a separate process and triples are passed to them from
+        transformers via multiprocessing.Queue
+        :return:
+        """
         self.importer = self.__create_importer()
 
         if self.inline_exporters:
@@ -63,12 +70,21 @@ class TransformationManager:
                 transformer.connect_to_exporter(self.exporters[i])
 
     def bootstrap_pipeline(self):
+        """
+        starts the transformers and exporters processes
+        :return:
+        """
         for i in range(self.parallelism):
             self.transformers[i].start()
             if not self.inline_exporters:
                 self.exporters[i].start()
 
     def run(self):
+        """
+        the entry point to run the whole pipeline logic starting by reading the records and then passing it to
+        transformers in a round robin fashion
+        :return:
+        """
         self.metrics_manager.stats_queue.put(pickle.dumps(TimeStampMessage(0, None, 'start', time.time())))
         self.bootstrap_pipeline()
 
@@ -119,6 +135,10 @@ class TransformationManager:
             self.transformers_queues[trans_idx] = []
 
     def __create_importer(self):
+        """
+        based on the input file extension, the corresponding importer is created and used to import the records
+        :return:
+        """
         ip_file_type = self.input_file.split('.')[-1]
         # TODO: create and return other importers types here
         if ip_file_type == 'json':

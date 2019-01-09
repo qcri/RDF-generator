@@ -4,18 +4,25 @@ import time
 from triples import *
 from utils.MultilevelDictionary import MultilevelDictionary
 from descriptor import Descriptor
-from utils.convenience import vectorize_object, devectorize_list
+from utils.convenience import vectorize_object
 from manager.transformation_metrics import TransformationBatchInfo, TimeStampMessage
 
 
 class DataTransformer:
     """
-    takes one data record and transforms it to a list of triples
+    ingests data records and transforms it to a list of RDFTriple object then passes it to DataExporters to be saved
     """
 
     transformer_no = 0
 
     def __init__(self, manager, stats_queue, out_queue=None):
+        """
+        Initializes the transformer object with the TransformationManager and the input and stats queues
+        :param manager: TransformationManager object that manages the whole transformation pipeline
+        :param stats_queue: the statistics multiprocessing.Queue where stats messages are sent to
+        :param out_queue: the multiprocessing.Queue that connects the transformer with the exporter if inline_exporters
+        is False
+        """
         self.manager = manager
         self.descriptor = manager.descriptor
         self.in_queue = mp.Queue()
@@ -29,6 +36,14 @@ class DataTransformer:
         self.runner = mp.Process(target=self.run, args=(self.in_queue, self.exporter, self.stats_queue, ))
 
     def run(self, in_queue, exporter, stats_queue):
+        """
+        The starting point of the transformer process
+        :param in_queue: the multiprocessing.Queue where the input records are passed in
+        :param exporter: if inline_exporters is True, this is the exporter instance that will be used to save the
+        generated triples
+        :param stats_queue: the multiprocessing.Queue used to pass stats messages
+        :return: None
+        """
         if exporter is not None:
             self.exporter = exporter
             self.exporter.exporter_no = self.transformer_no
@@ -55,10 +70,20 @@ class DataTransformer:
                 self.transform_records_if_needed()
 
     def transform_records_if_needed(self):
+        """
+        if the records buffer is full, starts a transformation batch to convert all records in the buffer to triples and
+        passes the triples to the exporter
+        :return: None
+        """
         if len(self.records_buffer) >= self.buffer_size:
             self.transform_records()
 
     def transform_records(self):
+        """
+        This method represents a transformation batch. It reads records from the records buffer and sends them to be
+        transformed then forwards them to the exporter
+        :return: None
+        """
         current_batch_no = self.__get_next_batch_no()
         print('transformer {} started processing batch no {} with {} records'.format(self.transformer_no,
                                                                                      current_batch_no,
@@ -78,7 +103,11 @@ class DataTransformer:
                                                                       len(self.records_buffer)))
 
     def transform(self, record):
-
+        """
+        This is where all the magic happens. Takes a single record and applies the descriptor transformation rules on it
+        :param record: the input record as dictionary
+        :return: list of RDFTriple objects resulted from transforming the passed record
+        """
         record_dict = MultilevelDictionary(record)
         record_triples = []
 
@@ -130,13 +159,18 @@ class DataTransformer:
                             else:                               # if the object is literal
                                 object_val = obj_val_match
 
-                            entity.add_feature(predicate_uri, object_val, object_type, object_data_type)
+                            entity.add_property(predicate_uri, object_val, object_type, object_data_type)
 
                 record_triples += entity.triples
 
         return record_triples
 
     def forward_created_triples(self, triples):
+        """
+        sends the passed triples to the exporter
+        :param triples: list of RDFTriple objects to be forwarded to the exporter
+        :return: None
+        """
         if len(triples) > 0:
             if self.manager.inline_exporters:
                 self.exporter.receive_triples(triples)
@@ -144,19 +178,38 @@ class DataTransformer:
                 self.out_queue.put(pickle.dumps(triples))
 
     def start(self):
+        """
+        starts the transformer process
+        :return:
+        """
         self.runner.start()
 
     def connect_to_exporter(self, exporter):
+        """
+        connects self to a particular exporter's multiprocessing.Queue to be able to pass triples to
+        :param exporter: the DataExporter object
+        :return: None
+        """
         if self.manager.inline_exporters:
             self.exporter = exporter
         else:
             self.out_queue = exporter.input_queue
 
-    def send_me_message(self, record):
-        if record is not None:
-            self.in_queue.put(pickle.dumps(record))
+    def send_me_message(self, message):
+        """
+        send a message to self on the input queue. This message could be EndMessage or list of records
+        :param message: either list of records or EndMessage if the TransformationManager signals the end of records
+        :return: None
+        """
+        if message is not None:
+            self.in_queue.put(pickle.dumps(message))
 
     def return_rdf_triples(self, triples):
+        """
+        forwards the passed triples to the exporter
+        :param triples: list of RDFTriple objects
+        :return: None
+        """
         self.out_queue.put(pickle.dumps(triples))
 
     def __get_next_batch_no(self):
