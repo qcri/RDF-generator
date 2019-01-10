@@ -11,18 +11,18 @@ The library takes in the following input:
 
 The transformation descriptor is the way you specify the rules that the transformer uses to convert the input data to the output RDF graphs. It is basically a json object that has the following hierarchy:
 
-* prefixes: json object whose keys are all the prefixes used in the conversion rules and the values are the prefix uris
-* graph: string value indicating the uri of the generated graph
-* entities: json object comprises all the entities to be generated from every input record. The keys are the entity names and the values are json objects that describes how each entity should be converted to RDF triples. Namely, how to build the entity's URI and assign different RDF properties to each property of this entity. The entity descriptor entry must have the following keys and values:
+* ```prefixes```: json object whose keys are all the prefixes used in the conversion rules and the values are the prefix uris
+* ```graph```: string value indicating the uri of the generated graph
+* ```entities```: json object comprises all the entities to be generated from every input record. The keys are the entity names and the values are json objects that describes how each entity should be converted to RDF triples. Namely, how to build the entity's URI and assign different RDF properties to each property of this entity. The entity descriptor entry must have the following keys and values:
 
-    * name: the entity's assigned name (string).
-    * uri_template: the uri template used to build the entity's RDF URI. The uri template has one or more key paths that will be substituted from the input record.
-    * type: the RDF type that should be assigned to the generated entity. It could come in normal URI form (http://example.com/entity1) or in prefixed form (sioc:microblogPost) given the prefix is already listed in the prefixes section of the descriptor.
-    * properties: json object where each key/value pair represents an entity's property. The key is mainly a key path within the input record that is mapped to a list of potential RDF predicates that could be used to describe this property. The predicate itself is a json object that holds some information about this candidate RDF predicate:
-        * predicate: the RDF predicate URI either in normal form (http://example.com/predicate1) or prefixed form (sioc:id)
-        * score: float value ranges from 0 -> 1 that reflects how good the semantic of this candidate predicate in representing this property.
-        * data_type: if the matched value of this predicate (object) is RDF Literal, what should be the RDF data type assigned to it (for example xsd:string).
-        * object_type: the type of the object in this property that could be either "entity", "literal" or "blank node" (not supported yet).
+    * ```name```: the entity's assigned name (string).
+    * ```uri_template```: the uri template used to build the entity's RDF URI. The uri template has one or more key paths that will be substituted from the input record.
+    * ```type```: the RDF type that should be assigned to the generated entity. It could come in normal URI form (http://example.com/entity1) or in prefixed form (sioc:microblogPost) given the prefix is already listed in the prefixes section of the descriptor.
+    * ```properties```: json object where each key/value pair represents an entity's property. The key is mainly a key path within the input record that is mapped to a list of potential RDF predicates that could be used to describe this property. The predicate itself is a json object that holds some information about this candidate RDF predicate:
+        * ```predicate```: the RDF predicate URI either in normal form (http://example.com/predicate1) or prefixed form (sioc:id)
+        * ```score```: float value ranges from 0 -> 1 that reflects how good the semantic of this candidate predicate in representing this property.
+        * ```data_type```: if the matched value of this predicate (object) is RDF Literal, what should be the RDF data type assigned to it (for example xsd:string).
+        * ```object_type```: the type of the object in this property that could be either "entity", "literal" or "blank node" (not supported yet).
 
 Sample descriptor that is used to transform twitter json data into RDF graphs:
 ```
@@ -129,14 +129,14 @@ python run.py graph_identifier input_path output_path descriptor_path export_for
 
 *Parameters description:*
 
-    * graph_identifier: the graph uri assigned to the generated RDF graph
-    * input_path: path to the input data file
-    * output_path: path to the output directory where the generated file will be placed
-    * descriptor_path: path to the descriptor file (must be json in the format mentioned above)
-    * export format: the exportation format. It should be one of the following formats [Turtle, XML, PRETTYXML, N3, NT, TRIG, TRIX, NQUADS]
-    * number_of_threads: to leverage multicore host machines, this parameter is to tell the transformer how many parallel threads to use in order to process the input data
-    * inline_exporters: False to create a separate thread for the export modules (good when processing large data in order not to block the transformation threads)
-    * buffer_size: the size of the buffer used to batch sending records and triples between the data importer, the transformer and exporter processes (tune to gain performance boost)
+    * ```graph_identifier```: the graph uri assigned to the generated RDF graph
+    * ```input_path```: path to the input data file
+    * ```output_path```: path to the output directory where the generated file will be placed
+    * ```descriptor_path```: path to the descriptor file (must be json in the format mentioned above)
+    * ```export format```: the exportation format. It should be one of the following formats [Turtle, XML, PRETTYXML, N3, NT, TRIG, TRIX, NQUADS]
+    * ```number_of_threads```: to leverage multicore host machines, this parameter is to tell the transformer how many parallel threads to use in order to process the input data
+    * ```inline_exporters```: False to create a separate thread for the export modules (good when processing large data in order not to block the transformation threads)
+    * ```buffer_size```: the size of the buffer used to batch sending records and triples between the data importer, the transformer and exporter processes (tune to gain performance boost)
 
 
 For example to transform twitter data to turtle:
