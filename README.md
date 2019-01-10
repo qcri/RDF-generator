@@ -128,8 +128,7 @@ python run.py graph_identifier input_path output_path descriptor_path export_for
 ```
 
 *Parameters description:*
-
-    * graph_identifier: the graph uri assigned to the generated RDF graph
+    * ```graph_identifier```: the graph uri assigned to the generated RDF graph
     * input_path: path to the input data file
     * output_path: path to the output directory where the generated file will be placed
     * descriptor_path: path to the descriptor file (must be json in the format mentioned above)
