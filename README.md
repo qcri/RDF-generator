@@ -3,26 +3,26 @@ Transforming structured (Tables) and semi-structured (Json & XML) data into RDF 
 
 The library takes in the following input:
 
-1. The input file path: this path points to the original data that needs to be converted to RDF graph
-2. The descriptor file path: path to the descriptor json file that contains the rules the library uses in order to convert the input to RDF graphs (the descriptor format is explained below)
-3. The output path: the output directory path used to save the generated RDF graphs. Since the library uses multiple threads to process the input, the output is saved to multiple graphs each one has maximum number of triples as defined in the GRAPH_MAX_SIZE variable
+* The input file path: this path points to the original data that needs to be converted to RDF graph
+* The descriptor file path: path to the descriptor json file that contains the rules the library uses in order to convert the input to RDF graphs (the descriptor format is explained below)
+* The output path: the output directory path used to save the generated RDF graphs. Since the library uses multiple threads to process the input, the output is saved to multiple graphs each one has maximum number of triples as defined in the GRAPH_MAX_SIZE variable
 
 **Descriptor Format**
 
 The transformation descriptor is the way you specify the rules that the transformer uses to convert the input data to the output RDF graphs. It is basically a json object that has the following hierarchy:
 
-1. prefixes: json object whose keys are all the prefixes used in the conversion rules and the values are the prefix uris
-2. graph: string value indicating the uri of the generated graph
-3. entities: json object comprises all the entities to be generated from every input record. The keys are the entity names and the values are json objects that describes how each entity should be converted to RDF triples. Namely, how to build the entity's URI and assign different RDF properties to each property of this entity. The entity descriptor entry must have the following keys and values:
+* prefixes: json object whose keys are all the prefixes used in the conversion rules and the values are the prefix uris
+* graph: string value indicating the uri of the generated graph
+* entities: json object comprises all the entities to be generated from every input record. The keys are the entity names and the values are json objects that describes how each entity should be converted to RDF triples. Namely, how to build the entity's URI and assign different RDF properties to each property of this entity. The entity descriptor entry must have the following keys and values:
 
-    3.1. name: the entity's assigned name (string).
-    3.2. uri_template: the uri template used to build the entity's RDF URI. The uri template has one or more key paths that will be substituted from the input record.
-    3.3. type: the RDF type that should be assigned to the generated entity. It could come in normal URI form (http://example.com/entity1) or in prefixed form (sioc:microblogPost) given the prefix is already listed in the prefixes section of the descriptor.
-    3.4. properties: json object where each key/value pair represents an entity's property. The key is mainly a key path within the input record that is mapped to a list of potential RDF predicates that could be used to describe this property. The predicate itself is a json object that holds some information about this candidate RDF predicate:
-        3.4.1. predicate: the RDF predicate URI either in normal form (http://example.com/predicate1) or prefixed form (sioc:id)
-        3.4.2. score: float value ranges from 0 -> 1 that reflects how good the semantic of this candidate predicate in representing this property.
-        3.4.3. data_type: if the matched value of this predicate (object) is RDF Literal, what should be the RDF data type assigned to it (for example xsd:string).
-        3.4.4. object_type: the type of the object in this property that could be either "entity", "literal" or "blank node" (not supported yet).
+    * name: the entity's assigned name (string).
+    * uri_template: the uri template used to build the entity's RDF URI. The uri template has one or more key paths that will be substituted from the input record.
+    * type: the RDF type that should be assigned to the generated entity. It could come in normal URI form (http://example.com/entity1) or in prefixed form (sioc:microblogPost) given the prefix is already listed in the prefixes section of the descriptor.
+    * properties: json object where each key/value pair represents an entity's property. The key is mainly a key path within the input record that is mapped to a list of potential RDF predicates that could be used to describe this property. The predicate itself is a json object that holds some information about this candidate RDF predicate:
+        * predicate: the RDF predicate URI either in normal form (http://example.com/predicate1) or prefixed form (sioc:id)
+        * score: float value ranges from 0 -> 1 that reflects how good the semantic of this candidate predicate in representing this property.
+        * data_type: if the matched value of this predicate (object) is RDF Literal, what should be the RDF data type assigned to it (for example xsd:string).
+        * object_type: the type of the object in this property that could be either "entity", "literal" or "blank node" (not supported yet).
 
 Sample descriptor that is used to transform twitter json data into RDF graphs:
 ```
