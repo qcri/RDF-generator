@@ -123,6 +123,14 @@ Sample descriptor that is used to transform twitter json data into RDF graphs:
 
 Using RDF-generator library:
 
+First, install the required python packages
+
+```
+pip install -r requirements.txt
+```
+
+Then, run the library
+
 ```
 python run.py graph_identifier input_path output_path descriptor_path export_format number_of_threads inline_exporters buffer_size
 ```

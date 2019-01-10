@@ -1,4 +1,5 @@
 import rdflib
+from datetime import datetime
 from rdflib.namespace import RDF
 
 
@@ -95,12 +96,19 @@ class Entity:
                 else:
                     return rdflib.URIRef(term)
             else:   # in case of literals
+                if data_type == 'xsd:dateTime':
+                    try:
+                        dt = Entity.create_datetime(term)
+                        term = Entity.get_rdf_datetime(dt)
+                    except Exception as ex:
+                        print('failed to convert xsd:dateTime to RDF format with error {}'.format(str(ex)))
+
                 return rdflib.Literal(term, datatype=data_type)
 
     @staticmethod
     def __is_prefixed(term):
         """
-        checks if the passed uri is in prefixed format or a noraml URI
+        checks if the passed uri is in prefixed format or a normal URI
         :param term: the term to check if prefixed
         :return: True if in prefix format or False if a normal URI
         """
@@ -118,3 +126,13 @@ class Entity:
             return comps[0], comps[1]
         else:
             return term
+
+    @staticmethod
+    def create_datetime(dtstring):
+        if dtstring is not None:
+            return datetime.strptime(dtstring, '%a %b %d %H:%M:%S %z %Y')
+
+    @staticmethod
+    def get_rdf_datetime(dt):
+        if dt is not None:
+            return dt.strftime('%Y-%m-%dT%H:%M:%S')
