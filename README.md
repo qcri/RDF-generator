@@ -129,14 +129,14 @@ python run.py graph_identifier input_path output_path descriptor_path export_for
 
 *Parameters description:*
 
-    * ```graph_identifier```: the graph uri assigned to the generated RDF graph
-    * ```input_path```: path to the input data file
-    * ```output_path```: path to the output directory where the generated file will be placed
-    * ```descriptor_path```: path to the descriptor file (must be json in the format mentioned above)
-    * ```export format```: the exportation format. It should be one of the following formats [Turtle, XML, PRETTYXML, N3, NT, TRIG, TRIX, NQUADS]
-    * ```number_of_threads```: to leverage multicore host machines, this parameter is to tell the transformer how many parallel threads to use in order to process the input data
-    * ```inline_exporters```: False to create a separate thread for the export modules (good when processing large data in order not to block the transformation threads)
-    * ```buffer_size```: the size of the buffer used to batch sending records and triples between the data importer, the transformer and exporter processes (tune to gain performance boost)
+    * graph_identifier: the graph uri assigned to the generated RDF graph
+    * input_path: path to the input data file
+    * output_path: path to the output directory where the generated file will be placed
+    * descriptor_path: path to the descriptor file (must be json in the format mentioned above)
+    * export format: the exportation format. It should be one of the following formats [Turtle, XML, PRETTYXML, N3, NT, TRIG, TRIX, NQUADS]
+    * number_of_threads: to leverage multicore host machines, this parameter is to tell the transformer how many parallel threads to use in order to process the input data
+    * inline_exporters: False to create a separate thread for the export modules (good when processing large data in order not to block the transformation threads)
+    * buffer_size: the size of the buffer used to batch sending records and triples between the data importer, the transformer and exporter processes (tune to gain performance boost)
 
 
 For example to transform twitter data to turtle:
