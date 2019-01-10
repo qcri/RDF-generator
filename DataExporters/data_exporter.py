@@ -26,6 +26,12 @@ class RDFExportFormats:
     TRIG = 'trig'
     NQUADS = 'nquads'
 
+    all_formats = [Turtle, XML, PRETTYXML, N3, NT, TRIG, TRIX, NQUADS]
+
+    @staticmethod
+    def is_recognized_format(format):
+        return format in RDFExportFormats.all_formats
+
 
 class DataExporter:
     """

@@ -119,8 +119,8 @@ class DataTransformer:
 
                 entity = Entity(en_name, ent_uri, ent_type, self.descriptor)
 
-                for feature_path, predicates in self.descriptor.get_all_entity_features(en_name).items():
-                    object_values = record_dict.get(feature_path)
+                for property_path, predicates in self.descriptor.get_all_entity_features(en_name).items():
+                    object_values = record_dict.get(property_path)
                     object_values = vectorize_object(object_values)
 
                     if len(object_values) > 0:
@@ -146,7 +146,7 @@ class DataTransformer:
 
                                 for key, val in subs.items():
                                     path = key if len(val) == 0 else val
-                                    path = Descriptor.get_relative_path(path, feature_path)
+                                    path = Descriptor.get_relative_path(path, property_path)
                                     subs_processed[key] = [x.match for x in obj_ml_dict.get(path) if x.match is not None]
                                     subs_count = len(subs_processed[key])
                                     if subs_count == 0:

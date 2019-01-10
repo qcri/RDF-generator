@@ -4,6 +4,10 @@ from utils.convenience import vectorize_object, devectorize_list
 import rdflib
 
 
+class DescriptorException(Exception):
+    pass
+
+
 class Descriptor:
     """
     wraps the descriptor information with a set of convenience funtions to retrieve various descriptor parameters such as
@@ -48,6 +52,8 @@ class Descriptor:
     def get_namespace(self, prefix):
         if prefix in self.namespaces:
             return self.namespaces[prefix]
+        else:
+            raise DescriptorException('undefined prefix {}. Only prefixes defined in the descriptor\'s prefixes section can be used'.format(prefix))
 
     def get_graph_uri(self):
         if 'graph' in self.desc_dict:
