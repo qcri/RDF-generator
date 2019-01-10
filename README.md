@@ -14,6 +14,7 @@ The transformation descriptor is the way you specify the rules that the transfor
 1. prefixes: json object whose keys are all the prefixes used in the conversion rules and the values are the prefix uris
 2. graph: string value indicating the uri of the generated graph
 3. entities: json object comprises all the entities to be generated from every input record. The keys are the entity names and the values are json objects that describes how each entity should be converted to RDF triples. Namely, how to build the entity's URI and assign different RDF properties to each property of this entity. The entity descriptor entry must have the following keys and values:
+
     3.1. name: the entity's assigned name (string)
     3.2. uri_template: the uri template used to build the entity's RDF URI. The uri template has one or more key paths that will be substituted from the input record
     3.3. type: the RDF type that should be assigned to the generated entity. It could come in normal URI form (http://example.com/entity1) or in prefixed form (sioc:microblogPost) given the prefix is already listed in the prefixes section of the descriptor
