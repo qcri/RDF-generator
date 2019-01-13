@@ -28,7 +28,7 @@ The transformation descriptor is the way you specify the rules that the transfor
             * ```name```: the function name. For example 'convert_to_rdf_datetime'
             * ```parameters```: dictionary of parameters to pass to the function in addition to the object value. For example the conversion format
 
-Note: in case of referencing list objects with key paths, there are two options either to select a particular item in the list with the [index] or all items in the list with [*]. For example, to include all hashtags in a tweet, we reference it with property key path '/entities/hashtags/\[*\]'. iIf only one tweet is needed, it can be referenced with '/entities/hashtags/\[0\]'
+Note: in case of referencing list objects with key paths, there are two options either to select a particular item in the list with the \[index\] or all items in the list with \[\*\]. For example, to include all hashtags in a tweet, we reference it with property key path '/entities/hashtags/\[\*\]'. iIf only one tweet is needed, it can be referenced with '/entities/hashtags/\[0\]'
 
 Sample descriptor that is used to transform twitter json data into RDF graphs:
 ```
