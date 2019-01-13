@@ -1,6 +1,7 @@
 from json_object import JsonReader
 from utils.MultilevelDictionary import MultilevelDictionary
 from utils.convenience import vectorize_object, devectorize_list
+from DataTransformers.Entity import PredicateFunction
 import rdflib
 
 
@@ -25,6 +26,7 @@ class Descriptor:
         self.namespaces = {}
         self.entities = {}      # Dictionary entity name => uri
         self.descriptor_types = {}
+        self.predicate_functions = {}
 
         if self.desc_dict is not None:
             self.load_prefixes()
@@ -37,6 +39,11 @@ class Descriptor:
     def load_entities(self):
         self.entities = self.get_all_entities()
         self.descriptor_types = {entity['type']: en_name for en_name, entity in self.entities.items()}
+
+        for entity in self.entities.values():
+            for property_preds in entity.get('properties', {}).values():
+                for predicate in property_preds:
+                    self.load_predicate_function(predicate)
 
     def load_all_prefixes(self):
         if 'prefixes' in self.desc_dict:
@@ -117,6 +124,47 @@ class Descriptor:
     def entity_with_type(self, entity_type):
         if entity_type in self.descriptor_types:
             return self.descriptor_types[entity_type]
+
+    def load_predicate_function(self, predicate):
+        func_obj = predicate.get('apply_function')
+
+        if func_obj is not None:
+            func_name = func_obj.get('name')
+            func_module = func_obj.get('module')
+            func_key = '{}.{}'.format(func_module, func_name)
+
+            if func_name is not None and func_module is not None and \
+                    func_key not in self.predicate_functions:
+                try:
+                    module = __import__(func_module)
+                    module = getattr(module, func_module.split('.')[-1])
+                    func = getattr(module, func_name)
+                    self.predicate_functions[func_key] = func
+                except ImportError as ex:
+                    print('error importing module {} with {}'.format(func_module, str(ex)))
+                    raise ex
+                except AttributeError as ex:
+                    print('error accessing attribute {} from module {} with {}'.format(func_name, func_module, str(ex)))
+                    raise ex
+
+    @staticmethod
+    def get_predicate_function_parameters(predicate):
+        func_obj = predicate.get('apply_function')
+
+        if func_obj is not None:
+            return func_obj.get('parameters')
+
+    def get_predicate_function(self, predicate):
+        func_obj = predicate.get('apply_function')
+
+        if func_obj is not None:
+            func_name = func_obj.get('name')
+            func_module = func_obj.get('module')
+            func_key = '{}.{}'.format(func_module, func_name)
+            func_params = func_obj.get('parameters')
+
+            if func_key in self.predicate_functions:
+                return PredicateFunction(func_key, self.predicate_functions[func_key], func_params)
 
     @staticmethod
     def extract_variables_from_uri_template(uri_template):

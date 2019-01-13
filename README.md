@@ -23,6 +23,12 @@ The transformation descriptor is the way you specify the rules that the transfor
         * ```score```: float value ranges from 0 -> 1 that reflects how good the semantic of this candidate predicate in representing this property.
         * ```data_type```: if the matched value of this predicate (object) is RDF Literal, what should be the RDF data type assigned to it (for example xsd:string).
         * ```object_type```: the type of the object in this property that could be either "entity", "literal" or "blank node" (not supported yet).
+        * ```apply_function```: some transformation function defined in a separate module to be applied on literal objects before storing them in the rdf graph
+            * ```module```: python module name as string points to where the function is defined. For example 'utils.convenience'
+            * ```name```: the function name. For example 'convert_to_rdf_datetime'
+            * ```parameters```: dictionary of parameters to pass to the function in addition to the object value. For example the conversion format
+
+Note: in case of referencing list objects with key paths, there are two options either to select a particular item in the list with the [index] or all items in the list with [*]. For example, to include all hashtags in a tweet, we reference it with property key path '/entities/hashtags/[*]'. iIf only one tweet is needed, it can be referenced with '/entities/hashtags/[0]'
 
 Sample descriptor that is used to transform twitter json data into RDF graphs:
 ```
@@ -48,7 +54,7 @@ Sample descriptor that is used to transform twitter json data into RDF graphs:
 				"/user/id_str": [{"predicate": "sioc:id", "score": 1.0, "data_type": "xsd:ID", "object_type": "literal"}],
 				"/user/screen_name": [{"predicate": "sioc:name", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
 				"/user/name": [{"predicate": "foaf:name", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
-				"/user/created_at": [{"predicate": "dcterms:created", "score": 1.0, "data_type": "xsd:dateTime", "object_type": "literal"}],
+				"/user/created_at": [{"predicate": "dcterms:created", "score": 1.0, "data_type": "xsd:dateTime", "object_type": "literal", "apply_function": {"name": "convert_to_rdf_datetime", "module": "utils.convenience"}}],
 				"/user/description": [{"predicate": "sioc:description", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
 				"/user/profile_image_url": [{"predicate": "sioc:avatar", "score": 1.0, "data_type": "xsd:URI", "object_type": "literal"}],
 				"/user/lang": [{"predicate": "dcterms:language", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
@@ -67,7 +73,7 @@ Sample descriptor that is used to transform twitter json data into RDF graphs:
 			"properties": {
 				"/id_str": [{"predicate": "sioc:id", "score": 1.0, "data_type": "xsd:ID", "object_type": "literal"}],
 				"/user/": [{"predicate": "sioc:has_creator", "score": 1.0, "data_type": "sioc:UserAccount", "object_type": "entity", "substitutions": {"/user/screen_name": ""}}],
-				"/created_at": [{"predicate": "dcterms:created", "score": 1.0, "data_type": "xsd:dateTime", "object_type": "literal"}],
+				"/created_at": [{"predicate": "dcterms:created", "score": 1.0, "data_type": "xsd:dateTime", "object_type": "literal", "apply_function": {"name": "convert_to_rdf_datetime", "module": "utils.convenience"}}],
 				"/text": [{"predicate": "sioc:content", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
 				"/lang": [{"predicate": "dcterms:language", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}],
 				"/place/": [{"predicate": "to:locatedin", "score": 1.0, "data_type": "to:Location", "object_type": "entity", "substitutions": {"/place/id": ""}}],
@@ -85,10 +91,10 @@ Sample descriptor that is used to transform twitter json data into RDF graphs:
 		"hashtag": {
 			"name": "hashtag",
 			"uri_template": "http://twitter.com/hashtag#{/entities/hashtags/[*]text}",
-			"type": "to:Hashtag",
+			"type": "to:Hashtag", 
 			"path": "/entities/hashtags/[*]",
 			"properties": {
-				"/entities/hashtags/[*]/text": [{"predicate": "to:hastext", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}]
+				"/entities/hashtags/[*]/text": [{"predicate": "to:hastext", "score": 1.0, "data_type": "xsd:string", "object_type": "literal"}]			
 			}
 		},
 		"mmresource": {

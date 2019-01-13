@@ -2,13 +2,14 @@
 stores triples into rdf graphs and exports them in multiple formats
 """
 
-import rdflib
-import os, time
-import pickle
-from triples import *
-from utils.convenience import vectorize_object, create_directory
-from manager.transformation_metrics import ExportationBatchInfo, TimeStampMessage
 import multiprocessing as mp
+import os
+import pickle
+import time
+
+from DataTransformers.Entity import *
+from manager.transformation_metrics import ExportationBatchInfo, TimeStampMessage
+from utils.convenience import vectorize_object, create_directory
 
 GRAPH_MAX_SIZE = 1000000
 

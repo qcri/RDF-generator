@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 
 def vectorize_object(obj):
@@ -27,3 +28,10 @@ def create_directory(dir):
     """
     if not os.path.exists(dir):
         os.makedirs(dir)
+
+
+def convert_to_rdf_datetime(dt_str):
+    if dt_str is not None:
+        dt = datetime.strptime(dt_str, '%a %b %d %H:%M:%S %z %Y')
+        if dt is not None:
+            return dt.strftime('%Y-%m-%dT%H:%M:%S')

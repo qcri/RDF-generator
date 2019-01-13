@@ -3,8 +3,9 @@ record different metrics in the transformation pipeline
 """
 import multiprocessing as mp
 import pickle
-import os, sys
-from triples import EndMessage
+import sys
+
+from DataTransformers.Entity import EndMessage
 
 
 class TimeStampMessage:

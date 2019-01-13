@@ -1,14 +1,18 @@
 """
 connects the transformation pipeline stages together
 """
+import math
+import os
+import pickle
+import time
+
+from DataExporters.data_exporter import DataExporter
 from DataImporters.json_data_importer import JsonDataImporter
 from DataTransformers.data_transformer import DataTransformer
-from DataExporters.data_exporter import DataExporter
-from utils.file_format_manager import FileFormatManager
+from DataTransformers.Entity import EndMessage
 from descriptor import Descriptor
-from triples import EndMessage
 from manager.transformation_metrics import TransformationMetrics, TimeStampMessage
-import os, math, time, pickle
+from utils.file_format_manager import FileFormatManager
 
 
 class TransformationManager:

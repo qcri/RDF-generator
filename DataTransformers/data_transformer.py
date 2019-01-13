@@ -1,11 +1,12 @@
 import multiprocessing as mp
 import pickle
 import time
-from triples import *
-from utils.MultilevelDictionary import MultilevelDictionary
+
+from DataTransformers.Entity import *
 from descriptor import Descriptor
-from utils.convenience import vectorize_object
 from manager.transformation_metrics import TransformationBatchInfo, TimeStampMessage
+from utils.MultilevelDictionary import MultilevelDictionary
+from utils.convenience import vectorize_object
 
 
 class DataTransformer:
@@ -126,9 +127,10 @@ class DataTransformer:
                     if len(object_values) > 0:
                         sorted_predicates = sorted(predicates, key=lambda p: p['score'])
                         predicate = sorted_predicates[-1]
-                        predicate_uri = predicate.get('predicate', None)
-                        object_type = predicate.get('object_type', None)
-                        object_data_type = predicate.get('data_type', None)
+                        predicate_uri = predicate.get('predicate')
+                        object_type = predicate.get('object_type')
+                        object_data_type = predicate.get('data_type')
+                        pred_func = self.descriptor.get_predicate_function(predicate)
 
                         obj_entity_name = self.descriptor.entity_with_type(object_data_type)
 
@@ -159,7 +161,7 @@ class DataTransformer:
                             else:                               # if the object is literal
                                 object_val = obj_val_match
 
-                            entity.add_property(predicate_uri, object_val, object_type, object_data_type)
+                            entity.add_property(predicate_uri, object_val, object_type, object_data_type, pred_func)
 
                 record_triples += entity.triples
 

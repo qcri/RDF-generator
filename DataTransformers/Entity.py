@@ -1,11 +1,20 @@
 import rdflib
-from datetime import datetime
 from rdflib.namespace import RDF
 
 
 class Message:
     def __init__(self, msg):
         self.message = msg
+
+
+class PredicateFunction:
+    def __init__(self, func_key, func, parameters):
+        self.key = func_key
+        self.func = func
+        self.parameters = parameters
+
+    def __repr__(self):
+        return '{}({})'.format(self.key, str(self.parameters))
 
 
 RDFTriples = list   # list of RDFTriple objects
@@ -61,7 +70,7 @@ class Entity:
     def add_triple(self, triple):
         self.triples.append(triple)
 
-    def add_property(self, predicate, object, object_type=None, object_data_type=None):
+    def add_property(self, predicate, object, object_type=None, object_data_type=None, function=None):
         """
         add property to the entity. a property is defined in the descriptor under the 'properties' collection in the
         entity's object
@@ -69,22 +78,25 @@ class Entity:
         :param object: the object pointed to by the predicate. It could be literal or another entity
         :param object_type: 'entity' or 'literal'
         :param object_data_type: the data type of the object if the object is literal
+        :param function: if the object is literal, apply the passed  PredicateFunction on it before creating
+        its value in the rdflib node
         :return:
         """
         subj = self.subj
         pred = self.__get_as_rdflib_node(predicate)
-        obj = self.__get_as_rdflib_node(object, object_type, object_data_type)
+        obj = self.__get_as_rdflib_node(object, object_type, object_data_type, function)
         if all([x is not None for x in [subj, pred, obj]]):
             triple = RDFTriple(subj, pred, obj)
             self.add_triple(triple)
 
-    def __get_as_rdflib_node(self, term, object_type=None, data_type=None):
+    def __get_as_rdflib_node(self, term, object_type=None, data_type=None, function=None):
         """
         wraps the passed term in rdflib node
         :param term: uri or prefixed
         :param object_type: 'entity' or None to distinguish between uri nodes and literal nodes
         :param data_type: the data type of literal terms
-        :return:
+        :param function: transformation function applied on literal objects before creating its rdflib node
+        :return: rdflib node
         """
         if term is not None:
             if object_type is None or object_type == 'entity':
@@ -96,12 +108,16 @@ class Entity:
                 else:
                     return rdflib.URIRef(term)
             else:   # in case of literals
-                if data_type == 'xsd:dateTime':
+                if function is not None:
                     try:
-                        dt = Entity.create_datetime(term)
-                        term = Entity.get_rdf_datetime(dt)
+                        if function.parameters is not None:
+                            term = function.func(term, function.parameters)
+                        else:
+                            term = function.func(term)
                     except Exception as ex:
-                        print('failed to convert xsd:dateTime to RDF format with error {}'.format(str(ex)))
+                        print('failed to convert {} to RDF format using {} with error {}'.format(term,
+                                                                                                 str(function),
+                                                                                                 str(ex)))
 
                 return rdflib.Literal(term, datatype=data_type)
 
@@ -126,13 +142,3 @@ class Entity:
             return comps[0], comps[1]
         else:
             return term
-
-    @staticmethod
-    def create_datetime(dtstring):
-        if dtstring is not None:
-            return datetime.strptime(dtstring, '%a %b %d %H:%M:%S %z %Y')
-
-    @staticmethod
-    def get_rdf_datetime(dt):
-        if dt is not None:
-            return dt.strftime('%Y-%m-%dT%H:%M:%S')
