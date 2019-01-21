@@ -159,4 +159,9 @@ For example to transform twitter data to turtle:
 python run.py http://twitter.com/graph path/to/input/file.json path/to/output/file.ttl path/to/descriptor.json turtle 8 False 1000 50000
 ```
 
+**Further improvements**
+
+If the record's identifier cannot be built from the record's data itself. This introduces a need for identifiers generator in a form of autoincrement field or any other id generator function in order to obtain unique entity identifiers. In this case, the transformer needs to follow a multipass approach if this entity is referenced in a triple as object as the object URI may not be present at the moment of building the triple.
+
+
 Happy transformation!
