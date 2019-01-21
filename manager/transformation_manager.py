@@ -21,7 +21,7 @@ class TransformationManager:
     """
 
     def __init__(self, graph_identifier, input_file, output_file, descriptor_file, export_format=None,
-                 parallelism=None, inline_exporters=False, buffer_size=1000):
+                 parallelism=None, inline_exporters=False, buffer_size=1000, max_graph_size=50000):
         """
         initializing the transformation manager with all the information needed to perform the whole transformation
         process
@@ -33,6 +33,8 @@ class TransformationManager:
         :param parallelism: the number of transformation worker threads (Degree of parallelism)
         :param inline_exporters: whether to create exporters in a different process
         :param buffer_size: records buffer size before processing or passing over
+        :param max_graph_size: the maximum graph size after which the rdflib graph has to be saved to disk to free up
+        memory
         """
         self.graph_identifier = graph_identifier
         self.input_file = input_file
@@ -42,6 +44,7 @@ class TransformationManager:
             else FileFormatManager.guess_export_format(self.output_file)
         self.inline_exporters = inline_exporters
         self.buffer_size = buffer_size
+        self.max_graph_size = max_graph_size
         self.importer = None
         self.transformers = []
         self.transformers_queues = []
@@ -62,14 +65,19 @@ class TransformationManager:
         self.importer = self.__create_importer()
 
         if self.inline_exporters:
-            exporter = DataExporter(self, self.metrics_manager.stats_queue)
+            exporter = DataExporter(manager=self,
+                                    stats_queue=self.metrics_manager.stats_queue,
+                                    max_graph_size=self.max_graph_size)
             self.exporters = exporter
 
         self.transformers = [DataTransformer(self, self.metrics_manager.stats_queue) for _ in range(self.parallelism)]
         self.transformers_queues = [[] for _ in range(self.parallelism)]
 
         if not self.inline_exporters:
-            self.exporters = [DataExporter(self, self.metrics_manager.stats_queue) for i in range(self.parallelism)]
+            self.exporters = [DataExporter(manager=self,
+                                           stats_queue=self.metrics_manager.stats_queue,
+                                           max_graph_size=self.max_graph_size)
+                              for _ in range(self.parallelism)]
             for i, transformer in enumerate(self.transformers):
                 transformer.connect_to_exporter(self.exporters[i])
 
@@ -130,7 +138,7 @@ class TransformationManager:
         transformer_idx = turn % len(self.transformers)
         self.transformers_queues[transformer_idx].append(record)
 
-        if len(self.transformers_queues[transformer_idx]) > self.buffer_size:
+        if len(self.transformers_queues[transformer_idx]) >= self.buffer_size:
             self.__send_records(transformer_idx)
 
     def __send_records(self, trans_idx):

@@ -11,8 +11,6 @@ from DataTransformers.Entity import *
 from manager.transformation_metrics import ExportationBatchInfo, TimeStampMessage
 from utils.convenience import vectorize_object, create_directory
 
-GRAPH_MAX_SIZE = 1000000
-
 
 class RDFExportFormats:
     """
@@ -42,7 +40,7 @@ class DataExporter:
 
     exporter_no = 0
 
-    def __init__(self, manager, stats_queue, input_queue=None):
+    def __init__(self, manager, stats_queue, input_queue=None, max_graph_size=50000):
         """
         initializes the exporter object
         :param manager: TransformationManager object to read some parameters from such as graph identifier, exportation
@@ -50,12 +48,15 @@ class DataExporter:
         :param stats_queue: multiprocessing.Queue to send statistics messages to the TransformationMetrics object
         :param input_queue: the multiprocessing.Queue where the transformer sends processed records on. This is where
         the triples are received
+        :param max_graph_size: the maximum graph size after which the rdflib graph has to be saved to disk to free up
+        memory
         """
         self.input_queue = input_queue if input_queue is not None else mp.Queue()
         self.stats_queue = stats_queue
         self.filepath = manager.output_file if manager.output_file is not None else manager.graph_iden
         self.graph_identifier = manager.graph_identifier
         self.export_format = manager.export_format
+        self.max_graph_size = max_graph_size
         self.graph = rdflib.Graph(store='IOMemory', identifier='Twitter')
         self.runner = mp.Process(target=self.run, args=(self.input_queue, self.stats_queue, ))
         self.save_counter = 0
@@ -150,10 +151,11 @@ class DataExporter:
 
             try:
                 self.graph.serialize(fp, exp_format)
+                self.__send_stats_obj(ExportationBatchInfo(self.exporter_no, self.save_counter, len(self.graph)))
+                self.graph.close()
+                self.graph = rdflib.Graph(identifier=self.graph_identifier)
             except Exception as ex:
                 print(str(ex))
-
-            self.__send_stats_obj(ExportationBatchInfo(self.exporter_no, self.save_counter, len(self.graph)))
 
     def save_if_needed(self, filepath=None, export_format=None):
         """
@@ -163,10 +165,8 @@ class DataExporter:
         :param export_format: the exportation format as defined in RDFExportFormats
         :return: None
         """
-        if len(self.graph) > GRAPH_MAX_SIZE:
+        if len(self.triples_buffer) > self.max_graph_size:
             self.save(filepath, export_format)
-            self.graph.close()
-            self.graph = rdflib.Graph(identifier=self.graph_identifier)
 
     def get_next_filename(self, filepath=None):
         """

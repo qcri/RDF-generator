@@ -11,6 +11,7 @@ if __name__ == "__main__":
     parallelism = int(sys.argv[6]) if len(sys.argv) > 6 and sys.argv[6].isdigit() else None
     inline_exporters = True if len(sys.argv) > 7 and sys.argv[7].lower() == 'true' else False
     buffer_size = int(sys.argv[8]) if len(sys.argv) > 8 and sys.argv[8].isdigit() else 1000
+    max_graph_size = int(sys.argv[9]) if len(sys.argv) > 9 and sys.argv[9].isdigit() else 50000
 
     trans_mngr = TransformationManager(graph_identifier=graph_iden,
                                        input_file=input_path,
@@ -19,5 +20,6 @@ if __name__ == "__main__":
                                        export_format=export_format,
                                        parallelism=parallelism,
                                        inline_exporters=True,
-                                       buffer_size=buffer_size)
+                                       buffer_size=buffer_size,
+                                       max_graph_size=max_graph_size)
     trans_mngr.run()

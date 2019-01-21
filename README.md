@@ -138,7 +138,7 @@ pip install -r requirements.txt
 Then, run the library
 
 ```
-python run.py graph_identifier input_path output_path descriptor_path export_format number_of_threads inline_exporters buffer_size
+python run.py graph_identifier input_path output_path descriptor_path export_format number_of_threads inline_exporters buffer_size max_graph_size
 ```
 
 *Parameters description:*
@@ -151,11 +151,12 @@ python run.py graph_identifier input_path output_path descriptor_path export_for
     * number_of_threads: to leverage multicore host machines, this parameter is to tell the transformer how many parallel threads to use in order to process the input data
     * inline_exporters: False to create a separate thread for the export modules (good when processing large data in order not to block the transformation threads)
     * buffer_size: the size of the buffer used to batch sending records and triples between the data importer, the transformer and exporter processes (tune to gain performance boost)
+    * max_graph_size: the maximum number of triples stored in memory after which the rdflib has to be flushed to disk to free up memory
 
 
 For example to transform twitter data to turtle:
 ```
-python run.py http://twitter.com/graph path/to/input/file.json path/to/output/file.ttl path/to/descriptor.json turtle 8 False 1000
+python run.py http://twitter.com/graph path/to/input/file.json path/to/output/file.ttl path/to/descriptor.json turtle 8 False 1000 50000
 ```
 
 Happy transformation!

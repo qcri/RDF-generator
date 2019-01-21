@@ -11,7 +11,7 @@ def test_transform_twitter_data():
                                        input_file='/Users/ghanemabdo/Work/DS/arabic-knowledge-base/rdf-generator/data/tbh.json',
                                        output_file='/Users/ghanemabdo/Work/DS/arabic-knowledge-base/rdf-generator/data/tbh.ttl',
                                        descriptor_file='/Users/ghanemabdo/Work/DS/arabic-knowledge-base/rdf-generator/descriptor.json',
-                                       inline_exporters=True)
+                                       inline_exporters=False)
     trans_mngr.run()
 
 if __name__ == '__main__':
