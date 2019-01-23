@@ -180,13 +180,15 @@ class DataExporter:
         basename = os.path.basename(fp)
         self.save_counter += 1
 
+        directory = directory + '/' if len(directory) > 0 and not directory.endswith('/') else directory
+
         if '.' in basename:
             filename = '.'.join(basename.split('.')[:-1])
             extension = basename.split('.')[-1]
-            return '{}/{}/{}_{}_{}.{}'.format(directory, basename, filename, self.exporter_no, self.save_counter, extension)
+            return '{}{}/{}_{}_{}.{}'.format(directory, basename, filename, self.exporter_no, self.save_counter, extension)
         else:
             filename = basename
-            return '{}/{}_{}.{}'.format(directory, filename, self.save_counter, self.export_format)
+            return '{}{}_{}.{}'.format(directory, filename, self.save_counter, self.export_format)
 
     def __send_stats_obj(self, stats_obj):
         self.stats_queue.put(pickle.dumps(stats_obj))
