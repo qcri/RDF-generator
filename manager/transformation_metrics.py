@@ -131,22 +131,16 @@ class TransformationMetrics:
         """
         records_processed, triples_generated = self.get_transformation_stats()
         print('''
-            Run metrics:
-            ============
-                total runtime: {} seconds
-                transformation time: {} seconds
-                exportation time: {} seconds
-                total records processed: {}
-                total triples generated: {}
-                number of transformer threads: {}
-                number of exporter threads: {}
-                '''.format(self.get_runtime(),
-                           self.get_runtime(thread_type='transformer'),
-                           self.get_runtime(thread_type='exporter'),
-                           records_processed,
-                           triples_generated,
-                           len(self.manager.transformers),
-                           self.exporters_count))
+Run metrics:
+============
+                ''')
+        print('total runtime: {0:.2f} seconds'.format(self.get_runtime()))
+        print('transformation time: {0:.2f} seconds'.format(self.get_runtime(thread_type='transformer')))
+        print('exportation time: {0:.2f} seconds'.format(self.get_runtime(thread_type='exporter')))
+        print('total records processed: {}'.format(records_processed))
+        print('total triples generated: {}'.format(triples_generated))
+        print('number of transformer threads: {}'.format(len(self.manager.transformers)))
+        print('number of exporter threads: {}'.format(self.exporters_count))
 
     @staticmethod
     def __filter_stats(info, batch_no, thread_no):
