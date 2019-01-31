@@ -161,7 +161,7 @@ python run.py http://twitter.com/graph path/to/input/file.json path/to/output/fi
 
 **Further improvements**
 
-If the record's identifier cannot be built from the record's data itself. This introduces a need for identifiers generator in a form of autoincrement field or any other id generator function in order to obtain unique entity identifiers. In this case, the transformer needs to follow a multipass approach if this entity is referenced in a triple as object as the object URI may not be present at the moment of building the triple.
-
+* If the record's identifier cannot be built from the record's data itself. This introduces a need for identifiers generator in a form of autoincrement field or any other id generator function in order to obtain unique entity identifiers. In this case, the transformer needs to follow a multipass approach if this entity is referenced in a triple as object as the object URI may not be present at the moment of building the triple.
+* Descriptor automatic generation. Given some data examples, a research task arises. Is it possible to automatically generate the descriptor either fully or partially? can we predict the potential entities in the sample data? In case of partial generation of the descriptor, the user can then edit the generated descriptor to refine or add entities or properties of entities. 
 
 Happy transformation!
